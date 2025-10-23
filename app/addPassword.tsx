@@ -3,14 +3,15 @@ import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'reac
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import CryptoJS from 'crypto-js';
-import * as Keychain from 'react-native-keychain';
+import * as SecureStore from 'expo-secure-store';
+import { createVaultEntry } from '../lib/api';
 
 // Récupère ou génère la clé de chiffrement
 async function getEncryptionKey() {
-  const creds = await Keychain.getGenericPassword();
-  if (creds) return creds.password;
-  const key = CryptoJS.lib.WordArray.random(32).toString(); // 32octets aléatoires
-  await Keychain.setGenericPassword('encryption-key', key);
+  const existing = await SecureStore.getItemAsync('encryption_key');
+  if (existing) return existing;
+  const key = CryptoJS.lib.WordArray.random(32).toString();
+  await SecureStore.setItemAsync('encryption_key', key);
   return key;
 }
 
@@ -27,11 +28,6 @@ export default function AddPassword() {
   const [url, setUrl] = useState('');
   const [password, setPassword] = useState('');
 
-  // Remplace cette valeur par ton token JWT obtenu après authentification
-  const token = '<TON_JWT_ICI>';
-  // Remplace l’URL par celle de ton backend (localhost, serveur, etc.)
-  const API_URL = 'http://localhost:3000/api/vault';
-
   const saveEntry = async () => {
     if (!pseudo || !url || !password) {
       Alert.alert('Champs manquants', 'Merci de remplir tous les champs.');
@@ -42,26 +38,14 @@ export default function AddPassword() {
       // Chiffre le mot de passe avant l’envoi
       const encryptedPassword = await encrypt(password);
 
-      const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        pseudo,
-        url,
-        password_encrypted: encryptedPassword,
-      }),
-    });
+      const responseData = await createVaultEntry(pseudo, url, encryptedPassword);
 
-    if (response.ok) {
-      Alert.alert('Succès', 'Entrée enregistrée avec succès');
-      router.push('/vault');
-    } else {
-      const message = await response.text();
-      Alert.alert('Erreur', `Impossible d’enregistrer : ${message}`);
-    }
+      if (responseData) {
+        Alert.alert('Succès', 'Entrée enregistrée avec succès');
+        router.push('/vault');
+      } else {
+        Alert.alert('Erreur', 'Impossible d’enregistrer l’entrée.');
+      }
     } catch (err) {
       console.error(err);
       Alert.alert('Erreur', 'Une erreur est survenue.');

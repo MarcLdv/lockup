@@ -10,7 +10,7 @@ export default function Home() {
         Sécurisez et gérez vos mots de passe en toute simplicité
       </Text>
 
-      <Link href="/vault" asChild>
+      <Link href="/lock" asChild>
         <TouchableOpacity style={styles.primaryButton}>
           <FontAwesome name="lock" size={24} color="#FFF" />
           <Text style={styles.primaryButtonText}>Ouvrir mon coffre</Text>
@@ -28,6 +28,20 @@ export default function Home() {
         <TouchableOpacity style={styles.secondaryButton}>
           <FontAwesome name="cog" size={22} color="#4B5563" />
           <Text style={styles.secondaryButtonText}>Paramètres</Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/login" asChild>
+        <TouchableOpacity style={styles.secondaryButton}>
+          <FontAwesome name="sign-in" size={22} color="#4B5563" />
+          <Text style={styles.secondaryButtonText}>Se connecter</Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/register" asChild>
+        <TouchableOpacity style={styles.secondaryButton}>
+          <FontAwesome name="user-plus" size={22} color="#4B5563" />
+          <Text style={styles.secondaryButtonText}>Créer un compte</Text>
         </TouchableOpacity>
       </Link>
     </View>
