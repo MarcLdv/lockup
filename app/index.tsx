@@ -17,7 +17,7 @@ export default function Home() {
         </TouchableOpacity>
       </Link>
 
-      <Link href="/add" asChild>
+      <Link href="/addPassword" asChild>
         <TouchableOpacity style={styles.primaryButton}>
           <FontAwesome name="plus-circle" size={24} color="#FFF" />
           <Text style={styles.primaryButtonText}>Ajouter un mot de passe</Text>
