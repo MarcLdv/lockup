@@ -43,3 +43,15 @@ Table: vault_items
 | encrypted_value | TEXT | Valeur chiffrée (AES-GCM / libsodium) |
 | created_at | TIMESTAMP | DEFAULT NOW() |
 | updated_at | TIMESTAMP | DEFAULT NOW() |
+
+## Choix de l'algorithme de hachage pour Lockup
+
+En prenant en compte l'importance de la sécurité et de la confidentialité pour les données de notre application, nous avons cherché à utiliser la meilleure méthode de hachage. Pour cela, nous avons pris en compte les exigences spécifiques du cas d'utilisation : le nombre d'utilisateurs, les ressources informatiques disponibles et les exigences de sécurité.
+
+**Pourquoi Argon2 est le meilleur choix :**
+
+Les algorithmes plus récents comme **Argon2 sont considérés comme plus puissants** que les plus anciens comme bcrypt et PBKDF2. Argon2 est conçu pour nécessiter beaucoup de mémoire (memory-hard), ce qui rend difficile pour les attaquants d'utiliser du matériel spécialisé comme les GPU et les ASIC pour casser les mots de passe. Bien que son calcul nécessite plus de mémoire ou de puissance de traitement, cette caractéristique constitue précisément sa force principale contre les attaques par force brute modernes.
+
+Argon2 offre plusieurs paramètres configurables (quantité de mémoire, nombre d'itérations, parallélisme) permettant d'adapter le niveau de sécurité aux ressources disponibles. C'est actuellement l'algorithme de hachage de mot de passe le plus recommandé pour les nouveaux projets.
+
+**Rappel important :** Le hachage des mots de passe n'est qu'un aspect de la sécurité globale. D'autres mesures telles que les politiques de mots de passe robustes et l'authentification multifacteur doivent être utilisées en complément pour maximiser la sécurité.
