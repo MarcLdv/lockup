@@ -1,25 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import CryptoJS from 'crypto-js';
-import * as SecureStore from 'expo-secure-store';
-import { createVaultEntry } from '../lib/api';
-
-// Récupère ou génère la clé de chiffrement
-async function getEncryptionKey() {
-  const existing = await SecureStore.getItemAsync('encryption_key');
-  if (existing) return existing;
-  const key = CryptoJS.lib.WordArray.random(32).toString();
-  await SecureStore.setItemAsync('encryption_key', key);
-  return key;
-}
-
-// Chiffre une chaîne de caractères en AES
-async function encrypt(text: string) {
-  const key = await getEncryptionKey();
-  return CryptoJS.AES.encrypt(text, key).toString();
-}
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { createVaultItem } from '../../services/api/vault.service';
+import { encrypt } from '../../services/crypto/encryption';
 
 export default function AddPassword() {
   const router = useRouter();
@@ -35,10 +19,10 @@ export default function AddPassword() {
     }
 
     try {
-      // Chiffre le mot de passe avant l’envoi
+      // Chiffre le mot de passe avant l'envoi
       const encryptedPassword = await encrypt(password);
 
-      const responseData = await createVaultEntry(pseudo, url, encryptedPassword);
+      const responseData = await createVaultItem(pseudo, url, encryptedPassword);
 
       if (responseData) {
         Alert.alert('Succès', 'Entrée enregistrée avec succès');

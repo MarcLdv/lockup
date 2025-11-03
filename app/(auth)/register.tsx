@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-import { register as apiRegister } from '../lib/api';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { register as apiRegister } from '../../services/api/auth.service';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -22,10 +21,9 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     try {
-      const data = await apiRegister(email, password);
-      await SecureStore.setItemAsync('api_token', data.token);
+      await apiRegister(email, password);
       Alert.alert('Inscription', 'Compte créé, connecté');
-      router.replace('/lock');
+      router.replace('/(tabs)/vault');
     } catch (e:any) {
       console.error(e);
       Alert.alert('Erreur', e.message || 'Problème réseau');

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { testHealth } from '../lib/api';
-import { BASE_API_URL } from '../lib/config';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BASE_API_URL } from '../../constants/config';
+import { testHealth } from '../../services/api/client';
 
 export default function HealthScreen() {
   const [status, setStatus] = useState<string>('');

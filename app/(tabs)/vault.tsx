@@ -1,27 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-import CryptoJS from 'crypto-js';
-import { listVault, logout } from '../lib/api';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { logout } from '../../services/api/auth.service';
+import { listVaultItems } from '../../services/api/vault.service';
+import { decrypt } from '../../services/crypto/encryption';
 
 interface VaultItem {
   id: number;
   pseudo: string;
   url: string;
   password_encrypted: string;
+  password_decrypted?: string; // Ajout pour le déchiffrement côté client
   created_at: string;
-}
-
-async function getEncryptionKey() {
-  const existing = await SecureStore.getItemAsync('encryption_key');
-  return existing || '';
-}
-
-async function decrypt(cipherText: string) {
-  const key = await getEncryptionKey();
-  const bytes = CryptoJS.AES.decrypt(cipherText, key);
-  return bytes.toString(CryptoJS.enc.Utf8);
 }
 
 export default function Vault() {
@@ -32,8 +22,7 @@ export default function Vault() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const token = await SecureStore.getItemAsync('api_token');
-        const responseData: VaultItem[] = await listVault();
+        const responseData: VaultItem[] = await listVaultItems();
         // Déchiffre chaque mot de passe
         const decrypted = await Promise.all(
           responseData.map(async item => ({
@@ -65,10 +54,10 @@ export default function Vault() {
           <Text style={styles.password}>{item.password_decrypted}</Text>
         </View>
       ))}
-      <TouchableOpacity style={styles.addButton} onPress={() => router.push('/addPassword')}>
+      <TouchableOpacity style={styles.addButton} onPress={() => router.push('/password/add')}>
         <Text style={styles.addButtonText}>+ Ajouter un mot de passe</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.addButton,{backgroundColor:'#EF4444'}]} onPress={async ()=>{ await logout(); router.replace('/login'); }}>
+      <TouchableOpacity style={[styles.addButton,{backgroundColor:'#EF4444'}]} onPress={async ()=>{ await logout(); router.replace('/(auth)/login'); }}>
         <Text style={styles.addButtonText}>Se déconnecter</Text>
       </TouchableOpacity>
     </ScrollView>

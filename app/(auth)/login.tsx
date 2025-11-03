@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-import { login as apiLogin } from '../lib/api';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { login as apiLogin } from '../../services/api/auth.service';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -17,10 +16,9 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      const data = await apiLogin(email, password);
-      await SecureStore.setItemAsync('api_token', data.token);
+      await apiLogin(email, password);
       Alert.alert('Connecté', 'Connexion réussie');
-      router.replace('/lock');
+      router.replace('/(tabs)/vault');
     } catch (e:any) {
       console.error(e);
       Alert.alert('Erreur', e.message || 'Problème réseau');
