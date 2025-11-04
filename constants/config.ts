@@ -6,7 +6,7 @@ export function getApiBase(): string {
   if (envUrl) return envUrl;
   
   if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:3000';
+    return 'http://192.168.0.173:3000';
   }
   
   // Web/iOS simulateur
