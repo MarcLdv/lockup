@@ -10,7 +10,7 @@ interface VaultItem {
   pseudo: string;
   url: string;
   password_encrypted: string;
-  password_decrypted?: string; // Ajout pour le déchiffrement côté client
+  password_decrypted?: string;
   created_at: string;
 }
 
@@ -47,13 +47,19 @@ export default function Vault() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Mes mots de passe</Text>
-      {items.map(item => (
-        <View key={item.id} style={styles.card}>
-          <Text style={styles.pseudo}>{item.pseudo}</Text>
-          <Text style={styles.url}>{item.url}</Text>
-          <Text style={styles.password}>{item.password_decrypted}</Text>
-        </View>
-      ))}
+      {items.length === 0 ? (
+        <Text style={{ textAlign: 'center', marginTop: 20, color: '#6B7280' }}>
+          Aucun mot de passe enregistré. Ajoutez-en un !
+        </Text>
+      ) : (
+        items.map(item => (
+          <View key={item.id} style={styles.card}>
+            <Text style={styles.pseudo}>{item.pseudo}</Text>
+            <Text style={styles.url}>{item.url}</Text>
+            <Text style={styles.password}>{item.password_decrypted}</Text>
+          </View>
+        ))
+      )}
       <TouchableOpacity style={styles.addButton} onPress={() => router.push('/password/add')}>
         <Text style={styles.addButtonText}>+ Ajouter un mot de passe</Text>
       </TouchableOpacity>

@@ -1,10 +1,39 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Link } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
+import { Link } from "expo-router";
+import { useEffect, useState } from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getToken } from "../../services/storage/secure-store";
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  async function checkAuth() {
+    try {
+      const token = await getToken();
+      setIsLoggedIn(!!token);
+    } catch (error) {
+      console.error('Erreur vérification auth:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return <Text style={styles.title}>Chargement...</Text>;
+  }
+
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../../assets/images/lockup-logo.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
       <Text style={styles.title}>Gestionnaire de mots de passe</Text>
       <Text style={styles.subtitle}>
         Sécurisez et gérez vos mots de passe en toute simplicité
@@ -31,19 +60,23 @@ export default function Home() {
         </TouchableOpacity>
       </Link>
 
-      <Link href="/login" asChild>
-        <TouchableOpacity style={styles.secondaryButton}>
-          <FontAwesome name="sign-in" size={22} color="#4B5563" />
-          <Text style={styles.secondaryButtonText}>Se connecter</Text>
-        </TouchableOpacity>
-      </Link>
+      {!isLoggedIn && (
+        <>
+          <Link href="/login" asChild>
+            <TouchableOpacity style={styles.secondaryButton}>
+              <FontAwesome name="sign-in" size={22} color="#4B5563" />
+              <Text style={styles.secondaryButtonText}>Se connecter</Text>
+            </TouchableOpacity>
+          </Link>
 
-      <Link href="/register" asChild>
-        <TouchableOpacity style={styles.secondaryButton}>
-          <FontAwesome name="user-plus" size={22} color="#4B5563" />
-          <Text style={styles.secondaryButtonText}>Créer un compte</Text>
-        </TouchableOpacity>
-      </Link>
+          <Link href="/register" asChild>
+            <TouchableOpacity style={styles.secondaryButton}>
+              <FontAwesome name="user-plus" size={22} color="#4B5563" />
+              <Text style={styles.secondaryButtonText}>Créer un compte</Text>
+            </TouchableOpacity>
+          </Link>
+        </>
+      )}
     </View>
   );
 }
@@ -98,5 +131,10 @@ const styles = StyleSheet.create({
     color: "#4B5563",
     marginLeft: 8,
     fontSize: 16,
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    marginBottom: 16,
   },
 });
