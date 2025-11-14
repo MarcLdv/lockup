@@ -18,13 +18,11 @@ async function getEncryptionKey(): Promise<string> {
   return key;
 }
 
-// Chiffre une chaîne de caractères
 export async function encrypt(plaintext: string): Promise<string> {
   const key = await getEncryptionKey();
   return CryptoJS.AES.encrypt(plaintext, key).toString();
 }
 
-// Déchiffre une chaîne de caractères
 export async function decrypt(ciphertext: string): Promise<string> {
   const key = await getEncryptionKey();
   const bytes = CryptoJS.AES.decrypt(ciphertext, key);

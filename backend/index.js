@@ -13,7 +13,7 @@ async function start() {
     
     const port = config.port;
     app.listen(port, () => {
-      console.log(`[Server] 🚀 Serveur démarré sur http://localhost:${port}`);
+      console.log(`[Server] Serveur démarré sur http://localhost:${port}`);
     });
   } catch (error) {
     console.error('[Server] Erreur au démarrage:', error);
