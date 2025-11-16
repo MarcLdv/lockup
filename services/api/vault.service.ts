@@ -21,9 +21,10 @@ export async function updateVaultItem(id: number, data: any) {
   });
 }
 
-export async function deleteVaultItem(id: number) {
-  return apiFetch(`/api/vault/${id}`, { 
-    auth: true, 
-    method: 'DELETE' 
-  });
-}
+// V2
+// export async function deleteVaultItem(id: number) {
+//   return apiFetch(`/api/vault/${id}`, { 
+//     auth: true, 
+//     method: 'DELETE' 
+//   });
+// }

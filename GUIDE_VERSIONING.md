@@ -9,6 +9,7 @@
 **Branch** : `release/v1.0.0`
 
 **Fonctionnalités** :
+
 | ID | Fonctionnalité | Priorité | Statut |
 |----|---------------|----------|--------|
 | F1 | Inscription utilisateur (email + password) | Haute | ✅ |
@@ -19,6 +20,7 @@
 | F6 | Déconnexion | Moyenne | ✅ |
 
 **Technos V1** :
+
 - Frontend : React Native + Expo
 - Backend : Node.js + Express + PostgreSQL
 - Sécurité : Argon2 (auth) + AES (stockage)
@@ -32,6 +34,7 @@
 **Branch** : `release/v2.0.0`
 
 **Nouvelles fonctionnalités** :
+
 | ID | Fonctionnalité | Priorité | Statut |
 |----|---------------|----------|--------|
 | F7 | Générateur de mots de passe sécurisés | Haute | 🔄 |
@@ -41,11 +44,13 @@
 | F11 | Recherche dans le coffre-fort | Basse | ⏸️ |
 
 **Changements techniques** :
+
 - Ajout de routes backend : `PUT /api/vault/:id`, `DELETE /api/vault/:id`
 - Nouveau composant : `PasswordGenerator.tsx`
 - Amélioration du layout avec meilleure navigation
 
 **Migration V1 → V2** :
+
 - ✅ **Compatibilité ascendante** : Les données V1 restent valides en V2
 - ✅ Pas de migration de base de données nécessaire
 - ✅ L'utilisateur peut mettre à jour sans perdre ses mots de passe
@@ -153,7 +158,6 @@ git push origin v2.0.0
 3. **Title** : `Version 1.0.0 - MVP Sécurisé`
 4. **Description** (Release Notes) :
 
-
 ## 🗂️ Structure Git finale attendue
 
 ```
@@ -177,6 +181,7 @@ GitHub Releases :
 ## ✅ Checklist finale avant rendu
 
 ### **Git & GitHub**
+
 - [ ] Dépôt public accessible
 - [ ] Branches `marc`, `release/v1.0.0`, `release/v2.0.0` créées
 - [ ] Tags `v1.0.0` et `v2.0.0` créés
@@ -184,22 +189,26 @@ GitHub Releases :
 - [ ] GitHub Releases créées avec APK
 
 ### **Documentation**
+
 - [ ] README.md à jour avec instructions d'installation
 - [ ] CDC.md avec planning des versions
 - [ ] Release notes pour V1 et V2
 
 ### **Code**
+
 - [ ] `app.json` : version 2.0.0, versionCode 2
 - [ ] V1 fonctionne (testée sur émulateur)
 - [ ] V2 fonctionne (testée sur émulateur)
 - [ ] Pas de code cassé dans les branches
 
 ### **Livrables**
+
 - [ ] APK V1 généré et uploadé sur GitHub Release
 - [ ] APK V2 généré et uploadé sur GitHub Release
 - [ ] PDF à déposer sur Teams : `dev_natif_projet_l_marc.pdf` avec lien GitHub
 
 ### **Présentation**
+
 - [ ] Slides préparés (optionnel mais conseillé)
 - [ ] Émulateur prêt avec V1 et V2 installées
 - [ ] Démo répétée (rester sous 8 min)

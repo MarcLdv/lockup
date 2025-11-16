@@ -30,6 +30,7 @@ Appuyez sur `a` pour Android ou `i` pour iOS
 ## Configuration
 
 Le fichier `.env` est déjà configuré. Pour PostgreSQL, les identifiants par défaut sont :
+
 - User: `lockup`
 - Password: `pass`
 - Database: `lockup`

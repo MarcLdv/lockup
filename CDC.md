@@ -36,7 +36,6 @@
 | **Backend** | Node.js + Express, argon2, jsonwebtoken |
 | **Base de données** | PostgreSQL |
 
-
 ## Schéma de base de données
 
 Table: users
