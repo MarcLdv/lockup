@@ -54,7 +54,11 @@ export default function Vault() {
           <View key={item.id} style={styles.card}>
             <Text style={styles.pseudo}>{item.pseudo}</Text>
             <Text style={styles.url}>{item.url}</Text>
-            <Text style={styles.password}>{item.password_decrypted}</Text>
+            {item.password_decrypted ? (
+              <Text style={styles.password}>{item.password_decrypted}</Text>
+            ) : (
+              <Text style={[styles.password, {color: 'red'}]}>Erreur de déchiffrement</Text>
+            )}
           </View>
         ))
       )}

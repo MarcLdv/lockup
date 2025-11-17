@@ -9,6 +9,7 @@ export default function UnlockScreen() {
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [confirmCode, setConfirmCode] = useState('');
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     checkConfiguration();
@@ -21,15 +22,16 @@ export default function UnlockScreen() {
   }
 
   async function handleUnlock() {
+    setErrorMsg(''); // Réinitialise le message d'erreur à chaque tentative
     if (secretCode.length !== 6) {
-      Alert.alert('Code invalide', 'Le code doit contenir 6 caractères');
+      setErrorMsg('Le code doit contenir 6 caractères');
       return;
     }
 
     if (isFirstTime) {
       // Premier démarrage : configuration du code
       if (secretCode !== confirmCode) {
-        Alert.alert('Erreur', 'Les codes ne correspondent pas');
+        setErrorMsg('Les codes ne correspondent pas');
         return;
       }
       
@@ -38,7 +40,7 @@ export default function UnlockScreen() {
         Alert.alert('Configuré', 'Votre coffre-fort est maintenant sécurisé !');
         router.replace('/(tabs)/vault');
       } catch (error: any) {
-        Alert.alert('Erreur', error.message);
+        setErrorMsg(error.message || 'Erreur lors de la configuration');
       }
     } else {
       // Déverrouillage normal
@@ -47,7 +49,7 @@ export default function UnlockScreen() {
       if (isValid) {
         router.replace('/(tabs)/vault');
       } else {
-        Alert.alert('Code incorrect', 'Le code saisi ne correspond pas');
+        setErrorMsg('Le code saisi ne correspond pas');
         setSecretCode('');
       }
     }
@@ -91,7 +93,12 @@ export default function UnlockScreen() {
         />
       )}
 
-      <TouchableOpacity 
+      {/* Affichage du message d'erreur sous le champ */}
+      {!!errorMsg && (
+        <Text style={styles.errorMsg}>{errorMsg}</Text>
+      )}
+
+      <TouchableOpacity
         style={[styles.button, secretCode.length !== 6 && styles.buttonDisabled]} 
         onPress={handleUnlock}
         disabled={secretCode.length !== 6 || (isFirstTime && confirmCode.length !== 6)}
@@ -113,4 +120,5 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#4F46E5', borderRadius: 8, paddingVertical: 14, alignItems: 'center' },
   buttonDisabled: { backgroundColor: '#9CA3AF' },
   buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  errorMsg: { color: '#EF4444', textAlign: 'center', marginBottom: 12, fontSize: 15 },
 });
