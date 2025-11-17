@@ -38,6 +38,10 @@ export default function AddPassword() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <FontAwesome name="arrow-left" size={20} color="#4F46E5" />
+        <Text style={styles.backButtonText}>Retour</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Ajouter un mot de passe</Text>
 
       <TextInput
@@ -77,6 +81,18 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     backgroundColor: '#F5F7FB',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    alignSelf: 'flex-start',
+  },
+  backButtonText: {
+    color: '#4F46E5',
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 6,
   },
   title: {
     fontSize: 24,

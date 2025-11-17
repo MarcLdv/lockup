@@ -41,6 +41,9 @@ export default function Vault() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <Text style={styles.backButtonText}>{'< Retour'}</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Mes mots de passe</Text>
       {items.length === 0 ? (
         <Text style={{ textAlign: 'center', marginTop: 20, color: '#6B7280' }}>
@@ -70,6 +73,18 @@ export default function Vault() {
 
 const styles = StyleSheet.create({
   container: { padding: 16, backgroundColor: '#F5F7FB' },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    alignSelf: 'flex-start',
+  },
+  backButtonText: {
+    color: '#4F46E5',
+    fontSize: 16,
+    fontWeight: '500',
+    marginRight: 6,
+  },
   title: { fontSize: 24, fontWeight: '600', marginBottom: 16, textAlign: 'center' },
   card: {
     backgroundColor: '#FFF', borderRadius: 8, padding: 16, marginBottom: 12,
