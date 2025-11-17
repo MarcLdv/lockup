@@ -1,44 +1,39 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { logout } from '../../services/api/auth.service';
-import { listVaultItems } from '../../services/api/vault.service';
 import { decrypt } from '../../services/crypto/encryption';
+import { getVaultItems, VaultItem } from '../../services/storage/vault-storage';
 
-interface VaultItem {
-  id: number;
-  pseudo: string;
-  url: string;
-  password_encrypted: string;
+interface VaultItemDecrypted extends VaultItem {
   password_decrypted?: string;
-  created_at: string;
 }
 
 export default function Vault() {
   const router = useRouter();
-  const [items, setItems] = useState<VaultItem[]>([]);
+  const [items, setItems] = useState<VaultItemDecrypted[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const responseData: VaultItem[] = await listVaultItems();
-        // Déchiffre chaque mot de passe
-        const decrypted = await Promise.all(
-          responseData.map(async item => ({
-            ...item,
-            password_decrypted: await decrypt(item.password_encrypted),
-          })),
-        );
-        setItems(decrypted);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchItems();
+    loadItems();
   }, []);
+
+  const loadItems = async () => {
+    try {
+      const vaultItems = await getVaultItems();
+      // Déchiffre chaque mot de passe
+      const decrypted = await Promise.all(
+        vaultItems.map(async item => ({
+          ...item,
+          password_decrypted: await decrypt(item.password_encrypted),
+        })),
+      );
+      setItems(decrypted);
+    } catch (err) {
+      console.error('Erreur lors du chargement du coffre:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return <ActivityIndicator style={{ flex: 1 }} size="large" color="#4F46E5" />;
@@ -63,8 +58,11 @@ export default function Vault() {
       <TouchableOpacity style={styles.addButton} onPress={() => router.push('/password/add')}>
         <Text style={styles.addButtonText}>+ Ajouter un mot de passe</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.addButton,{backgroundColor:'#EF4444'}]} onPress={async ()=>{ await logout(); router.replace('/(auth)/login'); }}>
-        <Text style={styles.addButtonText}>Se déconnecter</Text>
+      <TouchableOpacity 
+        style={[styles.addButton, {backgroundColor:'#EF4444'}]} 
+        onPress={() => router.replace('/(auth)/login')}
+      >
+        <Text style={styles.addButtonText}>Verrouiller</Text>
       </TouchableOpacity>
     </ScrollView>
   );

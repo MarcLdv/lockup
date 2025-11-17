@@ -2,8 +2,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { createVaultItem } from '../../services/api/vault.service';
 import { encrypt } from '../../services/crypto/encryption';
+import { addVaultItem } from '../../services/storage/vault-storage';
 
 export default function AddPassword() {
   const router = useRouter();
@@ -11,6 +11,7 @@ export default function AddPassword() {
   const [pseudo, setPseudo] = useState('');
   const [url, setUrl] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const saveEntry = async () => {
     if (!pseudo || !url || !password) {
@@ -18,21 +19,20 @@ export default function AddPassword() {
       return;
     }
 
+    setLoading(true);
     try {
-      // Chiffre le mot de passe avant l'envoi
+      // Chiffre le mot de passe avant le stockage
       const encryptedPassword = await encrypt(password);
 
-      const responseData = await createVaultItem(pseudo, url, encryptedPassword);
+      await addVaultItem(pseudo, url, encryptedPassword);
 
-      if (responseData) {
-        Alert.alert('Succès', 'Entrée enregistrée avec succès');
-        router.push('/vault');
-      } else {
-        Alert.alert('Erreur', 'Impossible d’enregistrer l’entrée.');
-      }
+      Alert.alert('Succès', 'Mot de passe enregistré avec succès');
+      router.back();
     } catch (err) {
-      console.error(err);
-      Alert.alert('Erreur', 'Une erreur est survenue.');
+      console.error('Erreur lors de l\'enregistrement:', err);
+      Alert.alert('Erreur', 'Impossible d\'enregistrer le mot de passe.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,9 +60,13 @@ export default function AddPassword() {
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={saveEntry}>
+      <TouchableOpacity 
+        style={[styles.button, loading && {opacity: 0.5}]} 
+        onPress={saveEntry}
+        disabled={loading}
+      >
         <FontAwesome name="save" size={20} color="#FFF" />
-        <Text style={styles.buttonText}>Enregistrer</Text>
+        <Text style={styles.buttonText}>{loading ? 'Enregistrement...' : 'Enregistrer'}</Text>
       </TouchableOpacity>
     </View>
   );

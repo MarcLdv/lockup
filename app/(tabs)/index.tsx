@@ -1,31 +1,8 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { getToken } from "../../services/storage/secure-store";
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  async function checkAuth() {
-    try {
-      const token = await getToken();
-      setIsLoggedIn(!!token);
-    } catch (error) {
-      console.error('Erreur vérification auth:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (loading) {
-    return <Text style={styles.title}>Chargement...</Text>;
-  }
 
   return (
     <View style={styles.container}>
@@ -53,30 +30,12 @@ export default function Home() {
         </TouchableOpacity>
       </Link>
 
-      <Link href="/settings" asChild>
-        <TouchableOpacity style={styles.secondaryButton}>
-          <FontAwesome name="cog" size={22} color="#4B5563" />
-          <Text style={styles.secondaryButtonText}>Paramètres</Text>
-        </TouchableOpacity>
-      </Link>
-
-      {!isLoggedIn && (
-        <>
-          <Link href="/login" asChild>
-            <TouchableOpacity style={styles.secondaryButton}>
-              <FontAwesome name="sign-in" size={22} color="#4B5563" />
-              <Text style={styles.secondaryButtonText}>Se connecter</Text>
-            </TouchableOpacity>
-          </Link>
-
-          <Link href="/register" asChild>
-            <TouchableOpacity style={styles.secondaryButton}>
-              <FontAwesome name="user-plus" size={22} color="#4B5563" />
-              <Text style={styles.secondaryButtonText}>Créer un compte</Text>
-            </TouchableOpacity>
-          </Link>
-        </>
-      )}
+      {/* <Link href="/settings" asChild> */}
+        {/* <TouchableOpacity style={styles.secondaryButton}> */}
+          {/* <FontAwesome name="cog" size={20} color="#4B5563" /> */}
+          {/* <Text style={styles.secondaryButtonText}>Paramètres</Text> */}
+        {/* </TouchableOpacity> */}
+      {/* </Link> */}
     </View>
   );
 }
