@@ -41,3 +41,16 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Backend
+backend/.env
+backend/node_modules
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+*.dy

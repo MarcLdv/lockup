@@ -2,23 +2,39 @@
 
 ## Résumé des fonctionnalités par version
 
-| Version | Fonctionnalité | Description | Priorité |
-|--------:|:--------------:|:-----------|:--------:|
-| V1 | Connexion | Permettre à un utilisateur de se connecter à l'application | Haute |
-| V1 | Gestion des mots de passe | Ajouter / stocker des mots de passe chiffrés en base de données | Haute |
-| V1 | Méthode de chiffrement | Implémenter un chiffrement fiable pour les mots de passe | Haute |
-| V1 | Affichage | Afficher les mots de passe de l'utilisateur connecté | Moyenne |
-| V2 | Générateur de mot de passe | Générer des mots de passe sécurisés | Moyenne |
-| V2 | Masquage | Cacher par défaut les mots de passe affichés et avoir un reveal sécurisé | Moyenne |
-| V2 | Mettre à jour un mot de passe | Permettre de modifier un mot de passe | Moyenne |
+### Version 1.0 - MVP Fonctionnel
+
+| Fonctionnalité | Description | Priorité |
+|:--------------|:-----------|:--------:|
+| Inscription | Créer un compte avec email/password | **Haute** |
+| Connexion | Se connecter avec JWT | **Haute** |
+| Ajouter un mot de passe | Stocker un mot de passe chiffré | **Haute** |
+| Lister les mots de passe | Afficher les entrées du coffre | **Haute** |
+| Chiffrement basique | crypto-js AES côté client | **Haute** |
+
+**Objectif V1** : Application qui fonctionne de bout en bout
+
+---
+
+### Version 2.0 - Amélioration sécurité
+
+| Fonctionnalité | Description | Priorité |
+|:--------------|:-----------|:--------:|
+| Générateur de mot de passe | Créer des mots de passe forts | **Haute** |
+| Masquage/Affichage | Toggle pour afficher/masquer les MDP | **Haute** |
+| Modification | Éditer un mot de passe existant | **Moyenne** |
+| Suppression | Supprimer une entrée | **Moyenne** |
+| Amélioration UI | Meilleur design et UX | **Moyenne** |
+
+**Objectif V2** : Fonctionnalités utilisables
 
 ## Technologies choisies
 
-| Côté | Rôle | Stack / Notes |
-|:-----|:-----|:--------------|
-| Client | Interface & chiffrement local | React Native, TypeScript, Web Crypto API / crypto-js, react-native-keychain (KeyStore / Keychain) |
-| Backend | API, auth & stockage chiffré | Node.js + Express (ou NestJS), TypeScript, argon2 (hash mot de passe), jsonwebtoken |
-| Base de données | Stockage relationnel | PostgreSQL 16+ |
+| Côté | Stack |
+|:-----|:------|
+| **Frontend** | React Native + Expo, TypeScript, crypto-js, expo-secure-store |
+| **Backend** | Node.js + Express, argon2, jsonwebtoken |
+| **Base de données** | PostgreSQL |
 
 ## Schéma de base de données
 
@@ -43,6 +59,50 @@ Table: vault_items
 | encrypted_value | TEXT | Valeur chiffrée (AES-GCM / libsodium) |
 | created_at | TIMESTAMP | DEFAULT NOW() |
 | updated_at | TIMESTAMP | DEFAULT NOW() |
+
+## Architecture du projet
+
+```
+lockup/
+├── app/                          # ÉCRANS
+│   ├── (auth)/                   # Groupe : Authentification
+│   │   ├── login.tsx
+│   │   └── register.tsx
+│   ├── (tabs)/                   # Groupe : Navigation avec tabs
+│   │   ├── index.tsx             # Accueil
+│   │   ├── vault.tsx             # Liste des mots de passe
+│   │   └── settings.tsx          
+│   ├── password/                 # Section : Gestion des MDP
+│   │   └── add.tsx               # Ajouter un mot de passe
+│   └── _layout.tsx
+│
+├── services/                     # SERVICES (API, Crypto, Storage)
+│   ├── api/                      
+│   │   ├── client.ts             # Client HTTP (apiFetch)
+│   │   ├── auth.service.ts       # Login, register, logout
+│   │   └── vault.service.ts      # CRUD mots de passe
+│   ├── crypto/                   
+│   │   ├── encryption.ts         # Chiffrement AES
+│   └── storage/                  
+│       └── secure-store.ts       # SecureStore wrapper
+│
+├── types/                        # TYPES TypeScript
+│   ├── auth.types.ts
+│   └── vault.types.ts
+│
+├── constants/                    # CONFIGURATION
+│   └── config.ts                 # API URL
+│
+├── assets/                       # RESSOURCES (images, fonts)
+│
+└── backend/                      # API Node.js/Express
+    ├── src/
+    │   ├── routes/               # Routes Express
+    │   ├── middleware/           # Auth JWT
+    │   ├── db/                   # PostgreSQL
+    │   └── config/               # Configuration
+    └── index.js
+```
 
 ## Choix de l'algorithme de hachage pour Lockup
 
