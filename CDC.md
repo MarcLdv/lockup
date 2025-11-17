@@ -2,7 +2,7 @@
 
 ## 📋 Résumé du projet
 
-**Lockup** est un gestionnaire de mots de passe **standalone pour Android**. L'utilisateur configure un code secret de 6 caractères lors du premier démarrage, qui lui permet ensuite de déverrouiller son coffre-fort de mots de passe chiffrés.
+**Lockup** est un gestionnaire de mots de passe **standalone pour Android**. L'utilisateur configure lors du premier démarrage, qui lui permet ensuite de déverrouiller son coffre-fort de mots de passe chiffrés.
 
 ---
 
@@ -10,165 +10,36 @@
 
 ### Version 1.0 - MVP Standalone
 
-| Fonctionnalité | Description | Priorité | Statut |
-|:--------------|:-----------|:--------:|:------:|
-| **Configuration initiale** | Définir un code secret de 6 caractères au premier lancement | **Haute** | ✅ |
-| **Déverrouillage** | Saisir le code secret pour accéder au coffre | **Haute** | ✅ |
-| **Ajouter un mot de passe** | Stocker pseudo + URL + mot de passe chiffré | **Haute** | ✅ |
-| **Lister les mots de passe** | Afficher tous les mots de passe déchiffrés | **Haute** | ✅ |
-| **Chiffrement AES-256** | Chiffrer automatiquement avec le code secret | **Haute** | ✅ |
-| **Verrouillage** | Retourner à l'écran de déverrouillage | **Haute** | ✅ |
+| Fonctionnalité | Description |
+|:--------------|:-----------|
+| **Configuration initiale** | Définir un mot de passe maître |
+| **Déverrouillage** | Saisir le mot de passe maître pour accéder au coffre |
+| **Ajouter un mot de passe** | Stocker pseudo + URL + mot de passe chiffré |
+| **Lister les mots de passe** | Afficher tous les mots de passe déchiffrés |
+| **Stocker les mots de passe** | Stocker les mots de passe dans un Sqlite |
+| **Chiffrement AES-256** | Chiffrer automatiquement avec le code secret |
+| **Fermeture de l'app sécurisée** | Redemande le mot de passe maître lorsque l'app est fermée |  
 
 **Technologies V1** :
 
-- Stockage : AsyncStorage (fichier texte JSON)
+- Stockage : Sqlite
 - Chiffrement : crypto-js (AES-256)
-- Code secret : expo-secure-store (Keychain/Keystore)
-
-**Objectif** : Démontrer l'architecture standalone et le chiffrement local
 
 ---
 
 ### Version 2.0 - Amélioration et performance
 
-| Fonctionnalité | Description | Priorité | Statut |
-|:--------------|:-----------|:--------:|:------:|
-| **Migration SQLite** | Remplacer AsyncStorage par SQLite | **Haute** | 🔄 |
-| **Générateur de mots de passe** | Créer des mots de passe forts aléatoires | **Haute** | 🔄 |
-| **Modification** | Éditer un mot de passe existant | **Haute** | 🔄 |
-| **Suppression** | Supprimer une entrée du coffre | **Moyenne** | 🔄 |
-| **Masquage/Affichage** | Toggle pour afficher/masquer les MDP | **Moyenne** | 🔄 |
+| Fonctionnalité | Description |
+|:--------------|:-----------|
+| **Migration** | Charger un nouveau script avec le nouveau schéma |
+| **Indicateur mot de passe maître** | Indiquer laa résistance du mot de passe maître |
+| **Modification** | Éditer un mot de passe existant |
+| **Suppression** | Supprimer une entrée du coffre |
+| **Masquer mot de passe** | Afficher ou masquer les mots de passes du listing | 
 
 **Technologies V2** :
 
-- Stockage : expo-sqlite (base de données locale)
-- Chiffrement : crypto-js ou react-native-quick-crypto
-- UI/UX : Amélioration du design
-
-**Objectif** : Performances accrues et fonctionnalités avancées
-
----
-
-## 🏗️ Architecture technique
-
-### Flux d'authentification (V1)
-
-```
-[Premier démarrage]
-    ↓
-[Saisie code secret 6 caractères] → Confirmation
-    ↓
-[Stockage hash du code dans SecureStore]
-    ↓
-[Code secret devient clé de chiffrement AES]
-
-[Démarrage suivant]
-    ↓
-[Saisie code secret]
-    ↓
-[Vérification hash] → Succès → [Accès au coffre]
-                    → Échec  → [Réessayer]
-```
-
-### Flux de stockage d'un mot de passe
-
-```
-[Utilisateur saisit : pseudo, URL, mdp]
-    ↓
-[Chiffrement AES avec code secret]
-    ↓
-[Stockage dans AsyncStorage (V1) ou SQLite (V2)]
-    ↓
-{
-  id: 1,
-  pseudo: "john@example.com",
-  url: "https://gmail.com",
-  password_encrypted: "U2FsdGVkX1...",
-  created_at: "2025-11-17T10:30:00Z"
-}
-```
-
-### Flux d'affichage
-
-```
-[Chargement des entrées depuis AsyncStorage/SQLite]
-    ↓
-[Déchiffrement avec le code secret en mémoire]
-    ↓
-[Affichage des mots de passe en clair]
-```
-
----
-
-## 🔐 Sécurité
-
-### V1
-
-| Mécanisme | Implémentation | Niveau |
-|:----------|:---------------|:------:|
-| **Code secret** | 6 caractères alphanumériques | ⭐⭐⭐ |
-| **Stockage du hash** | SecureStore (Keychain/Keystore) | ⭐⭐⭐⭐ |
-| **Chiffrement** | AES-256 avec code secret comme clé | ⭐⭐⭐ |
-| **Fonction de hashing** | Hash simple JavaScript (32bit) | ⭐⭐ |
-
-### V2 (améliorations prévues)
-
-| Mécanisme | Implémentation | Niveau |
-|:----------|:---------------|:------:|
-| **Fonction de hashing** | PBKDF2 ou Argon2 | ⭐⭐⭐⭐⭐ |
-| **Clé dérivée** | Dérivation de clé depuis le code | ⭐⭐⭐⭐⭐ |
-| **Tentatives limitées** | Blocage après X échecs | ⭐⭐⭐⭐ |
-
----
-
-## 📊 Schéma de données
-
-### V1 - AsyncStorage (JSON)
-
-```json
-{
-  "vault_items": [
-    {
-      "id": 1,
-      "pseudo": "john@example.com",
-      "url": "https://gmail.com",
-      "password_encrypted": "U2FsdGVkX1+abcd1234...",
-      "created_at": "2025-11-17T10:30:00Z"
-    },
-    {
-      "id": 2,
-      "pseudo": "john_doe",
-      "url": "https://github.com",
-      "password_encrypted": "U2FsdGVkX1+xyz9876...",
-      "created_at": "2025-11-17T11:00:00Z"
-    }
-  ]
-}
-```
-
-### V2 - SQLite
-
-**Table: vault_items**
-
-| Colonne | Type | Contraintes | Description |
-|:--------|:-----|:-----------|:------------|
-| id | INTEGER | PRIMARY KEY AUTOINCREMENT | ID unique |
-| pseudo | TEXT | NOT NULL | Identifiant/email |
-| url | TEXT | NOT NULL | URL du service |
-| password_encrypted | TEXT | NOT NULL | Mot de passe chiffré AES |
-| created_at | TEXT | DEFAULT CURRENT_TIMESTAMP | Date de création |
-| updated_at | TEXT | DEFAULT CURRENT_TIMESTAMP | Date de modification |
-
-**Table: app_config** (nouvelle)
-
-| Colonne | Type | Contraintes | Description |
-|:--------|:-----|:-----------|:------------|
-| key | TEXT | PRIMARY KEY | Nom du paramètre |
-| value | TEXT | NOT NULL | Valeur du paramètre |
-
----
-
-## 🚀 Déploiement
+## Déploiement
 
 ### Build APK
 
