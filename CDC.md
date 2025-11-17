@@ -1,105 +1,63 @@
-# Cahier des charges de Lockup - Gestionnaire de mots de passe
+# Cahier des charges - Lockup
 
-## Résumé des fonctionnalités par version
+## 📋 Résumé du projet
 
-### Version 1.0 - MVP Fonctionnel
-
-| Fonctionnalité | Description | Priorité |
-|:--------------|:-----------|:--------:|
-| Inscription | Créer un compte avec email/password | **Haute** |
-| Connexion | Se connecter avec JWT | **Haute** |
-| Ajouter un mot de passe | Stocker un mot de passe chiffré | **Haute** |
-| Lister les mots de passe | Afficher les entrées du coffre | **Haute** |
-| Chiffrement basique | crypto-js AES côté client | **Haute** |
-
-**Objectif V1** : Application qui fonctionne de bout en bout
+**Lockup** est un gestionnaire de mots de passe **standalone pour Android**. L'utilisateur configure lors du premier démarrage, qui lui permet ensuite de déverrouiller son coffre-fort de mots de passe chiffrés.
 
 ---
 
-### Version 2.0 - Amélioration sécurité
+## 🎯 Objectifs par version
 
-| Fonctionnalité | Description | Priorité |
-|:--------------|:-----------|:--------:|
-| Générateur de mot de passe | Créer des mots de passe forts | **Haute** |
-| Masquage/Affichage | Toggle pour afficher/masquer les MDP | **Haute** |
-| Modification | Éditer un mot de passe existant | **Moyenne** |
-| Suppression | Supprimer une entrée | **Moyenne** |
-| Amélioration UI | Meilleur design et UX | **Moyenne** |
+### Version 1.0 - MVP Standalone
 
-**Objectif V2** : Fonctionnalités utilisables
+| Fonctionnalité | Description |
+|:--------------|:-----------|
+| **Configuration initiale** | Définir un mot de passe maître |
+| **Déverrouillage** | Saisir le mot de passe maître pour accéder au coffre |
+| **Ajouter un mot de passe** | Stocker pseudo + URL + mot de passe chiffré |
+| **Lister les mots de passe** | Afficher tous les mots de passe déchiffrés |
+| **Stocker les mots de passe** | Stocker les mots de passe dans un Sqlite |
+| **Chiffrement AES-256** | Chiffrer automatiquement avec le code secret |
+| **Fermeture de l'app sécurisée** | Redemande le mot de passe maître lorsque l'app est fermée |  
 
-## Technologies choisies
+**Technologies V1** :
 
-| Côté | Stack |
-|:-----|:------|
-| **Frontend** | React Native + Expo, TypeScript, crypto-js, expo-secure-store |
-| **Backend** | Node.js + Express, argon2, jsonwebtoken |
-| **Base de données** | PostgreSQL |
+- Stockage : Sqlite
+- Chiffrement : crypto-js (AES-256)
 
-## Schéma de base de données
+---
 
-Table: users
+### Version 2.0 - Amélioration et performance
 
-| Colonne | Type | Contraintes / Notes |
-|:-------|:-----|:--------------------|
-| id | SERIAL / INTEGER | PRIMARY KEY |
-| email | TEXT | UNIQUE NOT NULL |
-| password_hash | TEXT | Hash (argon2/bcrypt) pour l'auth |
-| created_at | TIMESTAMP | DEFAULT NOW() |
+| Fonctionnalité | Description |
+|:--------------|:-----------|
+| **Migration** | Charger un nouveau script avec le nouveau schéma |
+| **Indicateur mot de passe maître** | Indiquer laa résistance du mot de passe maître |
+| **Modification** | Éditer un mot de passe existant |
+| **Suppression** | Supprimer une entrée du coffre |
+| **Masquer mot de passe** | Afficher ou masquer les mots de passes du listing | 
 
-Table: vault_items
+**Technologies V2** :
 
-| Colonne | Type | Contraintes / Notes |
-|:-------|:-----|:--------------------|
-| id | SERIAL / INTEGER | PRIMARY KEY |
-| user_id | INTEGER | REFERENCES users(id) ON DELETE CASCADE |
-| title | TEXT | Nom de l'entrée (ex: 'Gmail') |
-| login | TEXT | Identifiant associé (email/username) |
-| url | TEXT | Lien vers le site web du mot passe enregistré |
-| encrypted_value | TEXT | Valeur chiffrée (AES-GCM / libsodium) |
-| created_at | TIMESTAMP | DEFAULT NOW() |
-| updated_at | TIMESTAMP | DEFAULT NOW() |
+## Déploiement
 
-## Architecture du projet
+### Build APK
 
+```bash
+# Avec EAS Build (cloud)
+eas build --platform android --profile preview
+
+# Ou build local
+expo prebuild
+npx react-native run-android --mode=release
 ```
-lockup/
-├── app/                          # ÉCRANS
-│   ├── (auth)/                   # Groupe : Authentification
-│   │   ├── login.tsx
-│   │   └── register.tsx
-│   ├── (tabs)/                   # Groupe : Navigation avec tabs
-│   │   ├── index.tsx             # Accueil
-│   │   ├── vault.tsx             # Liste des mots de passe
-│   │   └── settings.tsx          
-│   ├── password/                 # Section : Gestion des MDP
-│   │   └── add.tsx               # Ajouter un mot de passe
-│   └── _layout.tsx
-│
-├── services/                     # SERVICES (API, Crypto, Storage)
-│   ├── api/                      
-│   │   ├── client.ts             # Client HTTP (apiFetch)
-│   │   ├── auth.service.ts       # Login, register, logout
-│   │   └── vault.service.ts      # CRUD mots de passe
-│   ├── crypto/                   
-│   │   ├── encryption.ts         # Chiffrement AES
-│   └── storage/                  
-│       └── secure-store.ts       # SecureStore wrapper
-│
-├── types/                        # TYPES TypeScript
-│   ├── auth.types.ts
-│   └── vault.types.ts
-│
-├── constants/                    # CONFIGURATION
-│   └── config.ts                 # API URL
-│
-├── assets/                       # RESSOURCES (images, fonts)
-│
-└── backend/                      # API Node.js/Express
-    ├── src/
-    │   ├── routes/               # Routes Express
-    │   ├── middleware/           # Auth JWT
-    │   ├── db/                   # PostgreSQL
-    │   └── config/               # Configuration
-    └── index.js
-```
+
+### Release GitHub
+
+1. Builder l'APK avec EAS
+2. Télécharger l'APK depuis le dashboard Expo
+3. Créer une release sur GitHub : `v1.0.0`
+4. Uploader l'APK dans les assets de la release
+5. Rédiger les notes de version (changelog)
+
+---

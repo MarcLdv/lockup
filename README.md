@@ -1,45 +1,103 @@
-# Lockup - Gestionnaire de mots de passe
+# Lockup - Gestionnaire de mots de passe Android
 
-## Prérequis
+> Application standalone de gestion de mots de passe sécurisée pour Android
 
-- Node.js
-- Docker (pour PostgreSQL)
+## 🎯 Concept
 
-## Installation et démarrage
+Lockup est un gestionnaire de mots de passe. Toutes les données sont stockées de manière chiffrée directement sur l'appareil Android de l'utilisateur.
 
-### Backend && Base de données
+## 🔐 Sécurité
+
+- **Code secret de 6 caractères** : Protège l'accès au coffre-fort
+- **Chiffrement AES-256** : Tous les mots de passe sont chiffrés avec crypto-js
+- **Stockage sécurisé** : Le code secret est stocké dans le Keychain/Keystore via expo-secure-store
+- **Pas de compte** : Pas d'email, pas de serveur, pas de risque de fuite de données
+
+## 📱 Fonctionnalités V1
+
+- ✅ Configuration du code secret au premier démarrage
+- ✅ Déverrouillage du coffre avec le code secret
+- ✅ Ajout de mots de passe (pseudo + URL + mot de passe)
+- ✅ Liste des mots de passe enregistrés
+- ✅ Chiffrement automatique des mots de passe
+- ✅ Verrouillage du coffre (retour à l'écran de déverrouillage)
+
+## 🚀 Roadmap V2
+
+- 🔄 Migration vers SQLite pour meilleures performances
+- 🔄 Génération de mots de passe forts
+- 🔄 Modification et suppression de mots de passe
+
+## 🛠️ Technologies
+
+- **React Native** + Expo (v54)
+- **TypeScript**
+- **AsyncStorage** : Stockage des données en fichier texte JSON (V1)
+- **expo-secure-store** : Stockage du code secret dans Keychain/Keystore
+- **crypto-js** : Chiffrement AES-256
+
+## 📦 Installation et développement
+
+### Prérequis
+
+- Node.js (v18+)
+- npm ou yarn
+- Expo CLI installé globalement : `npm install -g expo-cli`
+
+### Démarrage en développement
 
 ```bash
-cd backend
+# Installation des dépendances
 npm install
-docker-compose up -d
+
+# Démarrage du serveur de développement
 npm start
+
+# Ou directement sur Android
+npm run android
 ```
 
-Le serveur démarre sur `http://localhost:3000`
+## 📲 Build APK pour release
 
-### Frontend
+### Avec EAS Build (recommandé)
 
 ```bash
-npm install
-npm start
+# Installation d'EAS CLI
+npm install -g eas-cli
+
+# Connexion à votre compte Expo
+eas login
+
+# Configuration du projet (première fois)
+eas build:configure
+
+# Build de l'APK Android
+eas build --platform android --profile preview
 ```
 
-Appuyez sur `a` pour Android ou `i` pour iOS
+L'APK sera téléchargeable depuis votre tableau de bord Expo.
 
-## Configuration
+### Build local (alternative)
 
-Le fichier `.env` est déjà configuré. Pour PostgreSQL, les identifiants par défaut sont :
+```bash
+# Configuration
+expo prebuild
 
-- User: `lockup`
-- Password: `pass`
-- Database: `lockup`
+# Build Android
+npx react-native run-android --mode=release
+```
 
-## API Endpoints
+## 🔄 Évolution V1 → V2
 
-- `POST /api/auth/register` - Inscription
-- `POST /api/auth/login` - Connexion
-- `GET /api/vault` - Liste des mots de passe
-- `POST /api/vault` - Ajouter un mot de passe
-- `PUT /api/vault/:id` - Modifier
-- `DELETE /api/vault/:id` - Supprimer
+**V1 (actuelle)** : Stockage des mots de passe dans un fichier texte JSON via AsyncStorage
+
+- Simple et fonctionnel
+- Démontre l'architecture standalone
+- Performances limitées avec beaucoup d'entrées
+
+**V2 (prochaine)** : Migration vers SQLite
+
+- Meilleures performances
+- Requêtes plus rapides (recherche, tri, filtrage)
+- Gestion d'un grand nombre d'entrées
+- Relations entre tables (catégories, tags, historique)
