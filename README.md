@@ -1,45 +1,50 @@
-# Lockup - Gestionnaire de mots de passe
+# Welcome to your Expo app 👋
 
-## Prérequis
-
-- Node.js
-- Docker (pour PostgreSQL)
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Installation et démarrage
 
 ### Backend && Base de données
 
+   ```bash
+   npm install
+   ```
+
+2. Start the app
+
+   ```bash
+   npx expo start
+   ```
+
+In the output, you'll find options to open the app in a
+
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Get a fresh project
+
+When you're ready, run:
+
 ```bash
-cd backend
-npm install
-docker-compose up -d
-npm start
+npm run reset-project
 ```
 
-Le serveur démarre sur `http://localhost:3000`
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-### Frontend
+## Learn more
 
-```bash
-npm install
-npm start
-```
+To learn more about developing your project with Expo, look at the following resources:
 
-Appuyez sur `a` pour Android ou `i` pour iOS
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-## Configuration
+## Join the community
 
-Le fichier `.env` est déjà configuré. Pour PostgreSQL, les identifiants par défaut sont :
+Join our community of developers creating universal apps.
 
-- User: `lockup`
-- Password: `pass`
-- Database: `lockup`
-
-## API Endpoints
-
-- `POST /api/auth/register` - Inscription
-- `POST /api/auth/login` - Connexion
-- `GET /api/vault` - Liste des mots de passe
-- `POST /api/vault` - Ajouter un mot de passe
-- `PUT /api/vault/:id` - Modifier
-- `DELETE /api/vault/:id` - Supprimer
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
