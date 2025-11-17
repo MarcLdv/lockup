@@ -1,30 +1,26 @@
 import CryptoJS from 'crypto-js';
-import { getEncryptionKey as getStoredKey, storeEncryptionKey } from '../storage/secure-store';
+import { getEncryptionKey } from '../storage/unlock-storage';
 
-function generateRandomKey(): string {
-  return CryptoJS.lib.WordArray.random(32).toString(CryptoJS.enc.Hex);
-}
-
-// Récupère ou génère une clé de chiffrement locale
-// La clé est unique par appareil et stockée dans le Keychain/Keystore
-async function getEncryptionKey(): Promise<string> {
-  let key = await getStoredKey();
-  
-  if (!key) {
-    key = generateRandomKey();
-    await storeEncryptionKey(key);
-  }
-  
-  return key;
-}
+// V1 : Utilise le code secret de 6 caractères comme clé de chiffrement
+// V2 : Migration vers une clé dérivée avec PBKDF2 pour plus de sécurité
 
 export async function encrypt(plaintext: string): Promise<string> {
   const key = await getEncryptionKey();
+  
+  if (!key) {
+    throw new Error('Clé de chiffrement non disponible. Veuillez déverrouiller l\'application.');
+  }
+  
   return CryptoJS.AES.encrypt(plaintext, key).toString();
 }
 
 export async function decrypt(ciphertext: string): Promise<string> {
   const key = await getEncryptionKey();
+  
+  if (!key) {
+    throw new Error('Clé de chiffrement non disponible. Veuillez déverrouiller l\'application.');
+  }
+  
   const bytes = CryptoJS.AES.decrypt(ciphertext, key);
   return bytes.toString(CryptoJS.enc.Utf8);
 }

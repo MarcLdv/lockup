@@ -1,15 +1,15 @@
-import { Platform } from 'react-native';
+// Configuration de l'application Lockup V1
+// Mode standalone : toutes les données sont stockées localement sur l'appareil
 
-const envUrl = process.env.EXPO_PUBLIC_API_URL;
+export const APP_CONFIG = {
+  version: '1.0.0',
+  name: 'Lockup',
+  description: 'Gestionnaire de mots de passe sécurisé pour Android',
+  storageMode: 'local', // V1: stockage local avec AsyncStorage
+};
 
-export function getApiBase(): string {
-  if (envUrl) return envUrl;
-  
-  if (Platform.OS === 'android') {
-    return 'http://192.168.0.173:3000';
-  }
-  
-  // Web/iOS simulateur
-  return 'http://localhost:3000';
-}
-export const BASE_API_URL = getApiBase();
+export const SECURITY_CONFIG = {
+  secretCodeLength: 6,
+  encryptionAlgorithm: 'AES-256',
+  storageLocation: 'AsyncStorage', // V2: SQLite
+};

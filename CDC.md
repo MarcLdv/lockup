@@ -1,117 +1,192 @@
-# Cahier des charges de Lockup - Gestionnaire de mots de passe
+# Cahier des charges - Lockup
 
-## Résumé des fonctionnalités par version
+## 📋 Résumé du projet
 
-### Version 1.0 - MVP Fonctionnel
-
-| Fonctionnalité | Description | Priorité |
-|:--------------|:-----------|:--------:|
-| Inscription | Créer un compte avec email/password | **Haute** |
-| Connexion | Se connecter avec JWT | **Haute** |
-| Ajouter un mot de passe | Stocker un mot de passe chiffré | **Haute** |
-| Lister les mots de passe | Afficher les entrées du coffre | **Haute** |
-| Chiffrement basique | crypto-js AES côté client | **Haute** |
-
-**Objectif V1** : Application qui fonctionne de bout en bout
+**Lockup** est un gestionnaire de mots de passe **standalone pour Android**. L'utilisateur configure un code secret de 6 caractères lors du premier démarrage, qui lui permet ensuite de déverrouiller son coffre-fort de mots de passe chiffrés.
 
 ---
 
-### Version 2.0 - Amélioration sécurité
+## 🎯 Objectifs par version
 
-| Fonctionnalité | Description | Priorité |
-|:--------------|:-----------|:--------:|
-| Générateur de mot de passe | Créer des mots de passe forts | **Haute** |
-| Masquage/Affichage | Toggle pour afficher/masquer les MDP | **Haute** |
-| Modification | Éditer un mot de passe existant | **Moyenne** |
-| Suppression | Supprimer une entrée | **Moyenne** |
-| Amélioration UI | Meilleur design et UX | **Moyenne** |
+### Version 1.0 - MVP Standalone
 
-**Objectif V2** : Fonctionnalités utilisables
+| Fonctionnalité | Description | Priorité | Statut |
+|:--------------|:-----------|:--------:|:------:|
+| **Configuration initiale** | Définir un code secret de 6 caractères au premier lancement | **Haute** | ✅ |
+| **Déverrouillage** | Saisir le code secret pour accéder au coffre | **Haute** | ✅ |
+| **Ajouter un mot de passe** | Stocker pseudo + URL + mot de passe chiffré | **Haute** | ✅ |
+| **Lister les mots de passe** | Afficher tous les mots de passe déchiffrés | **Haute** | ✅ |
+| **Chiffrement AES-256** | Chiffrer automatiquement avec le code secret | **Haute** | ✅ |
+| **Verrouillage** | Retourner à l'écran de déverrouillage | **Haute** | ✅ |
 
-## Technologies choisies
+**Technologies V1** :
 
-| Côté | Stack |
-|:-----|:------|
-| **Frontend** | React Native + Expo, TypeScript, crypto-js, expo-secure-store |
-| **Backend** | Node.js + Express, argon2, jsonwebtoken |
-| **Base de données** | PostgreSQL |
+- Stockage : AsyncStorage (fichier texte JSON)
+- Chiffrement : crypto-js (AES-256)
+- Code secret : expo-secure-store (Keychain/Keystore)
 
-## Schéma de base de données
+**Objectif** : Démontrer l'architecture standalone et le chiffrement local
 
-Table: users
+---
 
-| Colonne | Type | Contraintes / Notes |
-|:-------|:-----|:--------------------|
-| id | SERIAL / INTEGER | PRIMARY KEY |
-| email | TEXT | UNIQUE NOT NULL |
-| password_hash | TEXT | Hash (argon2/bcrypt) pour l'auth |
-| created_at | TIMESTAMP | DEFAULT NOW() |
+### Version 2.0 - Amélioration et performance
 
-Table: vault_items
+| Fonctionnalité | Description | Priorité | Statut |
+|:--------------|:-----------|:--------:|:------:|
+| **Migration SQLite** | Remplacer AsyncStorage par SQLite | **Haute** | 🔄 |
+| **Générateur de mots de passe** | Créer des mots de passe forts aléatoires | **Haute** | 🔄 |
+| **Modification** | Éditer un mot de passe existant | **Haute** | 🔄 |
+| **Suppression** | Supprimer une entrée du coffre | **Moyenne** | 🔄 |
+| **Masquage/Affichage** | Toggle pour afficher/masquer les MDP | **Moyenne** | 🔄 |
 
-| Colonne | Type | Contraintes / Notes |
-|:-------|:-----|:--------------------|
-| id | SERIAL / INTEGER | PRIMARY KEY |
-| user_id | INTEGER | REFERENCES users(id) ON DELETE CASCADE |
-| title | TEXT | Nom de l'entrée (ex: 'Gmail') |
-| login | TEXT | Identifiant associé (email/username) |
-| url | TEXT | Lien vers le site web du mot passe enregistré |
-| encrypted_value | TEXT | Valeur chiffrée (AES-GCM / libsodium) |
-| created_at | TIMESTAMP | DEFAULT NOW() |
-| updated_at | TIMESTAMP | DEFAULT NOW() |
+**Technologies V2** :
 
-## Architecture du projet
+- Stockage : expo-sqlite (base de données locale)
+- Chiffrement : crypto-js ou react-native-quick-crypto
+- UI/UX : Amélioration du design
+
+**Objectif** : Performances accrues et fonctionnalités avancées
+
+---
+
+## 🏗️ Architecture technique
+
+### Flux d'authentification (V1)
 
 ```
-lockup/
-├── app/                          # ÉCRANS
-│   ├── (auth)/                   # Groupe : Authentification
-│   │   ├── login.tsx
-│   │   └── register.tsx
-│   ├── (tabs)/                   # Groupe : Navigation avec tabs
-│   │   ├── index.tsx             # Accueil
-│   │   ├── vault.tsx             # Liste des mots de passe
-│   │   └── settings.tsx          
-│   ├── password/                 # Section : Gestion des MDP
-│   │   └── add.tsx               # Ajouter un mot de passe
-│   └── _layout.tsx
-│
-├── services/                     # SERVICES (API, Crypto, Storage)
-│   ├── api/                      
-│   │   ├── client.ts             # Client HTTP (apiFetch)
-│   │   ├── auth.service.ts       # Login, register, logout
-│   │   └── vault.service.ts      # CRUD mots de passe
-│   ├── crypto/                   
-│   │   ├── encryption.ts         # Chiffrement AES
-│   └── storage/                  
-│       └── secure-store.ts       # SecureStore wrapper
-│
-├── types/                        # TYPES TypeScript
-│   ├── auth.types.ts
-│   └── vault.types.ts
-│
-├── constants/                    # CONFIGURATION
-│   └── config.ts                 # API URL
-│
-├── assets/                       # RESSOURCES (images, fonts)
-│
-└── backend/                      # API Node.js/Express
-    ├── src/
-    │   ├── routes/               # Routes Express
-    │   ├── middleware/           # Auth JWT
-    │   ├── db/                   # PostgreSQL
-    │   └── config/               # Configuration
-    └── index.js
+[Premier démarrage]
+    ↓
+[Saisie code secret 6 caractères] → Confirmation
+    ↓
+[Stockage hash du code dans SecureStore]
+    ↓
+[Code secret devient clé de chiffrement AES]
+
+[Démarrage suivant]
+    ↓
+[Saisie code secret]
+    ↓
+[Vérification hash] → Succès → [Accès au coffre]
+                    → Échec  → [Réessayer]
 ```
 
-## Choix de l'algorithme de hachage pour Lockup
+### Flux de stockage d'un mot de passe
 
-En prenant en compte l'importance de la sécurité et de la confidentialité pour les données de notre application, nous avons cherché à utiliser la meilleure méthode de hachage. Pour cela, nous avons pris en compte les exigences spécifiques du cas d'utilisation : le nombre d'utilisateurs, les ressources informatiques disponibles et les exigences de sécurité.
+```
+[Utilisateur saisit : pseudo, URL, mdp]
+    ↓
+[Chiffrement AES avec code secret]
+    ↓
+[Stockage dans AsyncStorage (V1) ou SQLite (V2)]
+    ↓
+{
+  id: 1,
+  pseudo: "john@example.com",
+  url: "https://gmail.com",
+  password_encrypted: "U2FsdGVkX1...",
+  created_at: "2025-11-17T10:30:00Z"
+}
+```
 
-**Pourquoi Argon2 est le meilleur choix :**
+### Flux d'affichage
 
-Les algorithmes plus récents comme **Argon2 sont considérés comme plus puissants** que les plus anciens comme bcrypt et PBKDF2. Argon2 est conçu pour nécessiter beaucoup de mémoire (memory-hard), ce qui rend difficile pour les attaquants d'utiliser du matériel spécialisé comme les GPU et les ASIC pour casser les mots de passe. Bien que son calcul nécessite plus de mémoire ou de puissance de traitement, cette caractéristique constitue précisément sa force principale contre les attaques par force brute modernes.
+```
+[Chargement des entrées depuis AsyncStorage/SQLite]
+    ↓
+[Déchiffrement avec le code secret en mémoire]
+    ↓
+[Affichage des mots de passe en clair]
+```
 
-Argon2 offre plusieurs paramètres configurables (quantité de mémoire, nombre d'itérations, parallélisme) permettant d'adapter le niveau de sécurité aux ressources disponibles. C'est actuellement l'algorithme de hachage de mot de passe le plus recommandé pour les nouveaux projets.
+---
 
-**Rappel important :** Le hachage des mots de passe n'est qu'un aspect de la sécurité globale. D'autres mesures telles que les politiques de mots de passe robustes et l'authentification multifacteur doivent être utilisées en complément pour maximiser la sécurité.
+## 🔐 Sécurité
+
+### V1
+
+| Mécanisme | Implémentation | Niveau |
+|:----------|:---------------|:------:|
+| **Code secret** | 6 caractères alphanumériques | ⭐⭐⭐ |
+| **Stockage du hash** | SecureStore (Keychain/Keystore) | ⭐⭐⭐⭐ |
+| **Chiffrement** | AES-256 avec code secret comme clé | ⭐⭐⭐ |
+| **Fonction de hashing** | Hash simple JavaScript (32bit) | ⭐⭐ |
+
+### V2 (améliorations prévues)
+
+| Mécanisme | Implémentation | Niveau |
+|:----------|:---------------|:------:|
+| **Fonction de hashing** | PBKDF2 ou Argon2 | ⭐⭐⭐⭐⭐ |
+| **Clé dérivée** | Dérivation de clé depuis le code | ⭐⭐⭐⭐⭐ |
+| **Tentatives limitées** | Blocage après X échecs | ⭐⭐⭐⭐ |
+
+---
+
+## 📊 Schéma de données
+
+### V1 - AsyncStorage (JSON)
+
+```json
+{
+  "vault_items": [
+    {
+      "id": 1,
+      "pseudo": "john@example.com",
+      "url": "https://gmail.com",
+      "password_encrypted": "U2FsdGVkX1+abcd1234...",
+      "created_at": "2025-11-17T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "pseudo": "john_doe",
+      "url": "https://github.com",
+      "password_encrypted": "U2FsdGVkX1+xyz9876...",
+      "created_at": "2025-11-17T11:00:00Z"
+    }
+  ]
+}
+```
+
+### V2 - SQLite
+
+**Table: vault_items**
+
+| Colonne | Type | Contraintes | Description |
+|:--------|:-----|:-----------|:------------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT | ID unique |
+| pseudo | TEXT | NOT NULL | Identifiant/email |
+| url | TEXT | NOT NULL | URL du service |
+| password_encrypted | TEXT | NOT NULL | Mot de passe chiffré AES |
+| created_at | TEXT | DEFAULT CURRENT_TIMESTAMP | Date de création |
+| updated_at | TEXT | DEFAULT CURRENT_TIMESTAMP | Date de modification |
+
+**Table: app_config** (nouvelle)
+
+| Colonne | Type | Contraintes | Description |
+|:--------|:-----|:-----------|:------------|
+| key | TEXT | PRIMARY KEY | Nom du paramètre |
+| value | TEXT | NOT NULL | Valeur du paramètre |
+
+---
+
+## 🚀 Déploiement
+
+### Build APK
+
+```bash
+# Avec EAS Build (cloud)
+eas build --platform android --profile preview
+
+# Ou build local
+expo prebuild
+npx react-native run-android --mode=release
+```
+
+### Release GitHub
+
+1. Builder l'APK avec EAS
+2. Télécharger l'APK depuis le dashboard Expo
+3. Créer une release sur GitHub : `v1.0.0`
+4. Uploader l'APK dans les assets de la release
+5. Rédiger les notes de version (changelog)
+
+---
