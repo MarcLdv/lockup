@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { APP_CONFIG } from '../../constants/config';
 import { decrypt } from '../../services/crypto/encryption';
 import { closeDatabase } from '../../services/database/sqlite';
