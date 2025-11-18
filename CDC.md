@@ -1,63 +1,63 @@
 # Cahier des charges - Lockup
 
-## 📋 Résumé du projet
+## Version 1.0
 
-**Lockup** est un gestionnaire de mots de passe **standalone pour Android**. L'utilisateur configure lors du premier démarrage, qui lui permet ensuite de déverrouiller son coffre-fort de mots de passe chiffrés.
-
----
-
-## 🎯 Objectifs par version
-
-### Version 1.0 - MVP Standalone
+### Fonctionnalités
 
 | Fonctionnalité | Description |
 |:--------------|:-----------|
-| **Configuration initiale** | Définir un mot de passe maître |
-| **Déverrouillage** | Saisir le mot de passe maître pour accéder au coffre |
-| **Ajouter un mot de passe** | Stocker pseudo + URL + mot de passe chiffré |
-| **Lister les mots de passe** | Afficher tous les mots de passe déchiffrés |
-| **Stocker les mots de passe** | Stocker les mots de passe dans un Sqlite |
-| **Chiffrement AES-256** | Chiffrer automatiquement avec le code secret |
-| **Fermeture de l'app sécurisée** | Redemande le mot de passe maître lorsque l'app est fermée |  
+| Configuration initiale | Définir un mot de passe maître (minimum 4 caractères) |
+| Déverrouillage | Saisir le mot de passe maître pour accéder au coffre |
+| Ajouter un mot de passe | Stocker pseudo + URL + mot de passe chiffré |
+| Lister les mots de passe | Afficher tous les mots de passe déchiffrés dans le coffre |
+| Chiffrement AES-256 | Chiffrer automatiquement chaque entrée avec le mot de passe maître |
+| Verrouillage sécurisé | Redemander le mot de passe maître lors de la fermeture ou du verrouillage manuel |
 
-**Technologies V1** :
+### Architecture de sécurité V1
 
-- Stockage : Sqlite
-- Chiffrement : crypto-js (AES-256)
+- Mot de passe maître stocké en clair dans SecureStore (Android Keystore)
+- Hash PBKDF2 avec 10 000 itérations pour l'authentication
+- Chiffrement AES-256-CBC avec IV unique (16 bytes) par entrée
+- Salt unique généré à la configuration (32 bytes)
+- Base de données SQLite locale
 
----
+## Version 2.0
 
-### Version 2.0 - Amélioration et performance
+### Nouvelles fonctionnalités
 
 | Fonctionnalité | Description |
 |:--------------|:-----------|
-| **Migration** | Charger un nouveau script avec le nouveau schéma |
-| **Indicateur mot de passe maître** | Indiquer laa résistance du mot de passe maître |
-| **Modification** | Éditer un mot de passe existant |
-| **Suppression** | Supprimer une entrée du coffre |
-| **Masquer mot de passe** | Afficher ou masquer les mots de passes du listing | 
+| Migration automatique | Détection de V1 et réinitialisation de la base de données |
+| Indicateur de force | Barre de progression colorée indiquant la robustesse du mot de passe maître (Faible/Moyen/Bon/Fort) |
+| Modification | Éditer le pseudo, l'URL ou le mot de passe d'une entrée existante |
+| Suppression | Supprimer une entrée du coffre avec dialogue de confirmation |
+| Masquage | Basculer l'affichage entre texte clair et points noirs (••••••••) pour chaque mot de passe |
 
-**Technologies V2** :
+### Architecture de sécurité V2
 
-## Déploiement
+- Clé de chiffrement dérivée stockée uniquement en RAM (variable `encryptionKeyInMemory`)
+- Disparition automatique de la clé au verrouillage via `lockApp()`
+- Double dérivation PBKDF2 :
+  - Salt 1 (32 bytes) : hash du mot de passe maître pour authentication
+  - Salt 2 (32 bytes) : dérivation de la clé de chiffrement AES
+- Salts séparés stockés dans SecureStore mais mot de passe maître jamais persisté
 
-### Build APK
+### Breaking change V1 → V2
 
-```bash
-# Avec EAS Build (cloud)
-eas build --platform android --profile preview
+**Raison** : Passage d'un stockage persistant du mot de passe maître (V1) à une clé dérivée volatile en RAM (V2).
 
-# Ou build local
-expo prebuild
-npx react-native run-android --mode=release
-```
+**Impact** : Impossible de déchiffrer les anciennes entrées V1 sans le mot de passe en clair. La migration force une réinitialisation complète de la base de données (DROP TABLE + CREATE TABLE).
 
-### Release GitHub
+**Comportement** : Au lancement de l'app V2, si `db_version = 1` est détecté, la fonction `migrateToV2()` supprime toutes les données et recrée les tables vides.
 
-1. Builder l'APK avec EAS
-2. Télécharger l'APK depuis le dashboard Expo
-3. Créer une release sur GitHub : `v1.0.0`
-4. Uploader l'APK dans les assets de la release
-5. Rédiger les notes de version (changelog)
+## Comparaison V1 vs V2
 
----
+| Aspect | Version 1.0 | Version 2.0 |
+|:-------|:-----------|:-----------|
+| Stockage mot de passe maître | SecureStore (clair) | RAM uniquement (dérivé) |
+| Sécurité au repos | Keystore Android | Aucune persistance |
+| Modification d'entrée | Non | Oui |
+| Suppression d'entrée | Non (reset complet uniquement) | Oui (individuelle) |
+| Masquage mot de passe | Non (toujours visible) | Oui (toggle par entrée) |
+| Indicateur de force | Non | Oui |
+| Migration de données | N/A | Impossible (reset requis) |

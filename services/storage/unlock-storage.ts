@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CryptoJS from 'crypto-js';
 import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
+import { debugLog } from '../../constants/config';
 
 const SECRET_CODE_KEY = 'master_password_hash';
 const IS_CONFIGURED_KEY = 'is_configured';
@@ -9,6 +10,8 @@ const SALT_KEY = 'password_salt';
 const ENCRYPTION_SALT_KEY = 'encryption_salt';
 
 const PBKDF2_ITERATIONS = 10000;
+
+let encryptionKeyInMemory: string | null = null;
 
 /**
  * Vérifie si l'application a déjà été configurée (mot de passe maître défini)
@@ -54,24 +57,25 @@ export async function setupSecretCode(masterPassword: string): Promise<void> {
   }
 
   try {
-    // Génère un salt pour le hash du mot de passe maître
     const passwordSalt = await generateSalt();
-    
-    // Génère un salt fixe différent pour le chiffrement AES
     const encryptionSalt = await generateSalt();
-
     const hashedPassword = hashPassword(masterPassword, passwordSalt);
     
-    // Stocke le hash, les salts dans SecureStore
     await SecureStore.setItemAsync(SECRET_CODE_KEY, hashedPassword);
     await SecureStore.setItemAsync(SALT_KEY, passwordSalt);
     await SecureStore.setItemAsync(ENCRYPTION_SALT_KEY, encryptionSalt);
-    
     await AsyncStorage.setItem(IS_CONFIGURED_KEY, 'true');
     
-    // Stocke le mot de passe en clair dans SecureStore pour servir de clé de chiffrement
-    await SecureStore.setItemAsync('encryption_key', masterPassword);
+    encryptionKeyInMemory = CryptoJS.PBKDF2(masterPassword, encryptionSalt, {
+      keySize: 256 / 32,
+      iterations: PBKDF2_ITERATIONS
+    }).toString();
     
+    debugLog('SETUP', 'Mot de passe maître configuré', {
+      passwordLength: masterPassword.length,
+      saltLength: encryptionSalt.length,
+      keyLength: encryptionKeyInMemory.length
+    });
     console.log('Mot de passe maître configuré');
   } catch (error) {
     console.error('Erreur lors de la configuration du mot de passe:', error);
@@ -100,30 +104,31 @@ export async function verifySecretCode(masterPassword: string): Promise<boolean>
     const inputHash = hashPassword(masterPassword, salt);
     const isValid = storedHash === inputHash;
     
-    // Si le mot de passe est correct, le stocker temporairement pour le chiffrement
     if (isValid) {
-      await SecureStore.setItemAsync('encryption_key', masterPassword);
+      const encryptionSalt = await SecureStore.getItemAsync(ENCRYPTION_SALT_KEY);
+      if (!encryptionSalt) {
+        throw new Error('Salt de chiffrement introuvable');
+      }
+      
+      encryptionKeyInMemory = CryptoJS.PBKDF2(masterPassword, encryptionSalt, {
+        keySize: 256 / 32,
+        iterations: PBKDF2_ITERATIONS
+      }).toString();
+      
+      debugLog('UNLOCK', 'Clé de chiffrement dérivée en RAM', {
+        keyLength: encryptionKeyInMemory.length
+      });
     }
     
     return isValid;
-    
   } catch (error) {
     console.error('Erreur lors de la vérification du mot de passe:', error);
     return false;
   }
 }
 
-/**
- * Récupère la clé de chiffrement (le code secret en clair)
- * Doit être appelé APRÈS vérification du code
- */
-export async function getEncryptionKey(): Promise<string | null> {
-  try {
-    return await SecureStore.getItemAsync('encryption_key');
-  } catch (error) {
-    console.error('Erreur lors de la récupération de la clé:', error);
-    return null;
-  }
+export function getEncryptionKey(): string | null {
+  return encryptionKeyInMemory;
 }
 
 /**
@@ -138,16 +143,20 @@ export async function getEncryptionSalt(): Promise<string | null> {
   }
 }
 
-/**
- * Réinitialise l'application (supprime le mot de passe et toutes les données)
- */
+export function lockApp(): void {
+  const hadKey = encryptionKeyInMemory !== null;
+  encryptionKeyInMemory = null;
+  debugLog('LOCK', 'Application verrouillée', { hadKeyInMemory: hadKey });
+  console.log('Application verrouillée');
+}
+
 export async function resetApp(): Promise<void> {
   try {
     await SecureStore.deleteItemAsync(SECRET_CODE_KEY);
     await SecureStore.deleteItemAsync(SALT_KEY);
     await SecureStore.deleteItemAsync(ENCRYPTION_SALT_KEY);
-    await SecureStore.deleteItemAsync('encryption_key');
     await AsyncStorage.removeItem(IS_CONFIGURED_KEY);
+    encryptionKeyInMemory = null;
     console.log('Application réinitialisée');
   } catch (error) {
     console.error('Erreur lors de la réinitialisation:', error);
