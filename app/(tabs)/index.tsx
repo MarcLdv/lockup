@@ -29,13 +29,6 @@ export default function Home() {
           <Text style={styles.primaryButtonText}>Ajouter un mot de passe</Text>
         </TouchableOpacity>
       </Link>
-
-      {/* <Link href="/settings" asChild> */}
-        {/* <TouchableOpacity style={styles.secondaryButton}> */}
-          {/* <FontAwesome name="cog" size={20} color="#4B5563" /> */}
-          {/* <Text style={styles.secondaryButtonText}>Paramètres</Text> */}
-        {/* </TouchableOpacity> */}
-      {/* </Link> */}
     </View>
   );
 }

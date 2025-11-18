@@ -1,8 +1,4 @@
-// Service de stockage local des mots de passe (V1)
-// Utilise AsyncStorage pour stocker les données dans un fichier texte JSON
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const VAULT_KEY = 'vault_items';
+import { getDatabase } from '../database/sqlite';
 
 export interface VaultItem {
   id: number;
@@ -13,20 +9,23 @@ export interface VaultItem {
 }
 
 /**
- * Récupère tous les éléments du coffre-fort
+ * Récupère tous les mots de passe du coffre
  */
 export async function getVaultItems(): Promise<VaultItem[]> {
   try {
-    const jsonValue = await AsyncStorage.getItem(VAULT_KEY);
-    return jsonValue != null ? JSON.parse(jsonValue) : [];
+    const db = getDatabase();
+    const items = await db.getAllAsync<VaultItem>(
+      'SELECT * FROM vault_items ORDER BY created_at DESC'
+    );
+    return items || [];
   } catch (error) {
-    console.error('Erreur lors de la lecture du coffre-fort:', error);
+    console.error('Erreur lors de la récupération des mots de passe:', error);
     return [];
   }
 }
 
 /**
- * Ajoute un nouvel élément au coffre-fort
+ * Ajoute un nouveau mot de passe au coffre
  */
 export async function addVaultItem(
   pseudo: string,
@@ -34,74 +33,56 @@ export async function addVaultItem(
   encryptedPassword: string
 ): Promise<VaultItem> {
   try {
-    const items = await getVaultItems();
+    const db = getDatabase();
     
-    // Génère un ID unique (max + 1)
-    const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
+    const result = await db.runAsync(
+      'INSERT INTO vault_items (pseudo, url, password_encrypted) VALUES (?, ?, ?)',
+      [pseudo, url, encryptedPassword]
+    );
     
     const newItem: VaultItem = {
-      id: newId,
+      id: result.lastInsertRowId,
       pseudo,
       url,
       password_encrypted: encryptedPassword,
       created_at: new Date().toISOString(),
     };
     
-    items.push(newItem);
-    await AsyncStorage.setItem(VAULT_KEY, JSON.stringify(items));
-    
+    console.log('Mot de passe ajouté:', newItem.id);
     return newItem;
   } catch (error) {
-    console.error('Erreur lors de l\'ajout au coffre-fort:', error);
+    console.error('Erreur lors de l\'ajout du mot de passe:', error);
     throw error;
   }
 }
 
+
 /**
- * Met à jour un élément existant
+ * Compte le nombre total de mots de passe
  */
-export async function updateVaultItem(
-  id: number,
-  data: Partial<Omit<VaultItem, 'id' | 'created_at'>>
-): Promise<void> {
+export async function countVaultItems(): Promise<number> {
   try {
-    const items = await getVaultItems();
-    const index = items.findIndex(item => item.id === id);
-    
-    if (index === -1) {
-      throw new Error(`Élément avec l'id ${id} introuvable`);
-    }
-    
-    items[index] = { ...items[index], ...data };
-    await AsyncStorage.setItem(VAULT_KEY, JSON.stringify(items));
+    const db = getDatabase();
+    const result = await db.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) as count FROM vault_items'
+    );
+    return result?.count || 0;
   } catch (error) {
-    console.error('Erreur lors de la mise à jour:', error);
-    throw error;
+    console.error('Erreur lors du comptage:', error);
+    return 0;
   }
 }
 
 /**
- * Supprime un élément du coffre-fort
- */
-export async function deleteVaultItem(id: number): Promise<void> {
-  try {
-    const items = await getVaultItems();
-    const filteredItems = items.filter(item => item.id !== id);
-    await AsyncStorage.setItem(VAULT_KEY, JSON.stringify(filteredItems));
-  } catch (error) {
-    console.error('Erreur lors de la suppression:', error);
-    throw error;
-  }
-}
-
-/**
- * Efface toutes les données du coffre-fort
+ * Efface tous les mots de passe du coffre
  */
 export async function clearVault(): Promise<void> {
   try {
-    await AsyncStorage.removeItem(VAULT_KEY);
+    const db = getDatabase();
+    await db.runAsync('DELETE FROM vault_items');
+    console.log('Coffre-fort vidé');
   } catch (error) {
-    console.error('Erreur lors du nettoyage du coffre-fort:', error);
+    console.error('Erreur lors du nettoyage du coffre:', error);
     throw error;
   }
 }

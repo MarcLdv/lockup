@@ -18,13 +18,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => <FontAwesome name="lock" size={size} color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Paramètres',
-          tabBarIcon: ({ color, size }) => <FontAwesome name="cog" size={size} color={color} />,
-        }}
-      />
     </Tabs>
   );
 }
