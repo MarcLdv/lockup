@@ -2,6 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { APP_CONFIG } from '../../constants/config';
 import { decrypt } from '../../services/crypto/encryption';
 import { closeDatabase } from '../../services/database/sqlite';
@@ -16,6 +17,14 @@ export default function Vault() {
   const router = useRouter();
   const [items, setItems] = useState<VaultItemDecrypted[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visiblePasswords, setVisiblePasswords] = useState<{[id: string]: boolean}>({});
+
+  const togglePasswordVisibility = (id: string) => {
+    setVisiblePasswords(prev => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   const loadItems = async () => {
     setLoading(true);
@@ -87,11 +96,29 @@ export default function Vault() {
             <View key={item.id} style={styles.card}>
               <Text style={styles.pseudo}>{item.pseudo}</Text>
               <Text style={styles.url}>{item.url}</Text>
-              {item.password_decrypted ? (
-                <Text style={styles.password}>{item.password_decrypted}</Text>
-              ) : (
-                <Text style={[styles.password, {color: '#EF4444'}]}> Erreur de déchiffrement</Text>
-              )}
+              <View style={styles.passwordRow}>
+                {item.password_decrypted ? (
+                  <Text style={styles.password}>
+                    {visiblePasswords[item.id]
+                      ? item.password_decrypted
+                      : '•'.repeat(item.password_decrypted.length || 8)}
+                  </Text>
+                ) : (
+                  <Text style={[styles.password, {color: '#EF4444'}]}>Erreur de déchiffrement</Text>
+                )}
+                {item.password_decrypted && (
+                  <TouchableOpacity
+                    onPress={() => togglePasswordVisibility(item.id)}
+                    style={styles.eyeButton}
+                  >
+                    <Ionicons
+                      name={visiblePasswords[item.id] ? 'eye-off' : 'eye'}
+                      size={20}
+                      color="#6B7280"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           ))}
         </>
@@ -144,7 +171,17 @@ const styles = StyleSheet.create({
   },
   pseudo: { fontSize: 18, fontWeight: '600', color: '#1F2937' },
   url: { fontSize: 14, color: '#4B5563', marginBottom: 4 },
-  password: { fontSize: 16, color: '#6B7280', fontFamily: 'monospace' },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  password: { fontSize: 16, color: '#6B7280', fontFamily: 'monospace', flex: 1 },
+  eyeButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
   addButton: {
     marginTop: 24, backgroundColor: '#4F46E5', borderRadius: 8,
     paddingVertical: 12, alignItems: 'center',
