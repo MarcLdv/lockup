@@ -1,3 +1,4 @@
+import { debugLog } from '../../constants/config';
 import { getDatabase } from '../database/sqlite';
 
 export interface VaultItem {
@@ -48,10 +49,51 @@ export async function addVaultItem(
       created_at: new Date().toISOString(),
     };
     
+    debugLog('VAULT', 'Mot de passe ajouté', {
+      id: newItem.id,
+      pseudo: pseudo,
+      encryptedLength: encryptedPassword.length
+    });
     console.log('Mot de passe ajouté:', newItem.id);
     return newItem;
   } catch (error) {
     console.error('Erreur lors de l\'ajout du mot de passe:', error);
+    throw error;
+  }
+}
+
+export async function updateVaultItem(
+  id: number,
+  pseudo: string,
+  url: string,
+  encryptedPassword: string
+): Promise<void> {
+  try {
+    const db = getDatabase();
+    
+    await db.runAsync(
+      'UPDATE vault_items SET pseudo = ?, url = ?, password_encrypted = ? WHERE id = ?',
+      [pseudo, url, encryptedPassword, id]
+    );
+    
+    debugLog('VAULT', 'Mot de passe modifié', { id, pseudo });
+    console.log('Mot de passe modifié:', id);
+  } catch (error) {
+    console.error('Erreur lors de la modification du mot de passe:', error);
+    throw error;
+  }
+}
+
+export async function deleteVaultItem(id: number): Promise<void> {
+  try {
+    const db = getDatabase();
+    
+    await db.runAsync('DELETE FROM vault_items WHERE id = ?', [id]);
+    
+    debugLog('VAULT', 'Mot de passe supprimé', { id });
+    console.log('Mot de passe supprimé:', id);
+  } catch (error) {
+    console.error('Erreur lors de la suppression du mot de passe:', error);
     throw error;
   }
 }

@@ -6,6 +6,21 @@ import Toast, { ToastType } from '../../components/Toast';
 import { initDatabase } from '../../services/database/sqlite';
 import { isAppConfigured, setupSecretCode, verifySecretCode } from '../../services/storage/unlock-storage';
 
+function calculatePasswordStrength(password: string): { score: number; label: string; color: string } {
+  let score = 0;
+  
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+  if (/\d/.test(password)) score += 1;
+  if (/[^a-zA-Z0-9]/.test(password)) score += 1;
+  
+  if (score <= 1) return { score, label: 'Faible', color: '#EF4444' };
+  if (score === 2) return { score, label: 'Moyen', color: '#F59E0B' };
+  if (score === 3) return { score, label: 'Bon', color: '#3B82F6' };
+  return { score, label: 'Fort', color: '#10B981' };
+}
+
 export default function UnlockScreen() {
   const router = useRouter();
   const [masterPassword, setMasterPassword] = useState('');
@@ -16,10 +31,18 @@ export default function UnlockScreen() {
   const [toast, setToast] = useState({ visible: false, message: '', type: 'info' as ToastType });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
 
   useEffect(() => {
     initialize();
   }, []);
+
+  useEffect(() => {
+    if (isFirstTime && masterPassword) {
+      const strength = calculatePasswordStrength(masterPassword);
+      setPasswordStrength(strength);
+    }
+  }, [masterPassword, isFirstTime]);
 
   const showToast = (message: string, type: ToastType) => {
     setToast({ visible: true, message, type });
@@ -162,6 +185,24 @@ export default function UnlockScreen() {
               />
             </TouchableOpacity>
           </View>
+          {masterPassword.length >= 4 && (
+            <View style={styles.strengthContainer}>
+              <View style={styles.strengthBarContainer}>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <View 
+                    key={i} 
+                    style={[
+                      styles.strengthBar,
+                      i <= passwordStrength.score && { backgroundColor: passwordStrength.color }
+                    ]} 
+                  />
+                ))}
+              </View>
+              <Text style={[styles.strengthText, { color: passwordStrength.color }]}>
+                {passwordStrength.label}
+              </Text>
+            </View>
+          )}
           <View style={styles.hintContainer}>
             <View style={styles.hintDot} />
             <Text style={styles.hint}>Minimum 4 caractères (8+ recommandé)</Text>
@@ -282,6 +323,25 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 12,
     fontWeight: '500',
+  },
+  strengthContainer: {
+    marginBottom: 12,
+  },
+  strengthBarContainer: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 6,
+  },
+  strengthBar: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E5E7EB',
+  },
+  strengthText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

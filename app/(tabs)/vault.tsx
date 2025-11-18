@@ -1,3 +1,4 @@
+import { FontAwesome } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
@@ -6,8 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { APP_CONFIG } from '../../constants/config';
 import { decrypt } from '../../services/crypto/encryption';
 import { closeDatabase } from '../../services/database/sqlite';
-import { resetApp } from '../../services/storage/unlock-storage';
-import { clearVault, getVaultItems, VaultItem } from '../../services/storage/vault-storage';
+import { lockApp, resetApp } from '../../services/storage/unlock-storage';
+import { clearVault, deleteVaultItem, getVaultItems, VaultItem } from '../../services/storage/vault-storage';
 
 interface VaultItemDecrypted extends VaultItem {
   password_decrypted?: string;
@@ -17,14 +18,7 @@ export default function Vault() {
   const router = useRouter();
   const [items, setItems] = useState<VaultItemDecrypted[]>([]);
   const [loading, setLoading] = useState(true);
-  const [visiblePasswords, setVisiblePasswords] = useState<{[id: string]: boolean}>({});
-
-  const togglePasswordVisibility = (id: string) => {
-    setVisiblePasswords(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
+  const [visiblePasswords, setVisiblePasswords] = useState<Set<number>>(new Set());
 
   const loadItems = async () => {
     setLoading(true);
@@ -77,6 +71,41 @@ export default function Vault() {
     );
   };
 
+  const handleDelete = (id: number, pseudo: string) => {
+    Alert.alert(
+      'Supprimer',
+      `Voulez-vous vraiment supprimer "${pseudo}" ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteVaultItem(id);
+              await loadItems();
+            } catch (error) {
+              console.error('Erreur suppression:', error);
+              Alert.alert('Erreur', 'Impossible de supprimer');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const togglePasswordVisibility = (id: number) => {
+    setVisiblePasswords(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
   if (loading) {
     return <ActivityIndicator style={{ flex: 1 }} size="large" color="#4F46E5" />;
   }
@@ -94,30 +123,44 @@ export default function Vault() {
           <Text style={styles.countText}>{items.length} mot(s) de passe</Text>
           {items.map(item => (
             <View key={item.id} style={styles.card}>
-              <Text style={styles.pseudo}>{item.pseudo}</Text>
-              <Text style={styles.url}>{item.url}</Text>
-              <View style={styles.passwordRow}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.pseudo}>{item.pseudo}</Text>
+                  <Text style={styles.url}>{item.url}</Text>
+                </View>
+                <View style={styles.cardActions}>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => router.push({ pathname: '/password/edit', params: { id: item.id.toString() } })}
+                  >
+                    <FontAwesome name="edit" size={18} color="#4F46E5" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => handleDelete(item.id, item.pseudo)}
+                  >
+                    <FontAwesome name="trash" size={18} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.passwordContainer}>
                 {item.password_decrypted ? (
                   <Text style={styles.password}>
-                    {visiblePasswords[item.id]
-                      ? item.password_decrypted
-                      : '•'.repeat(item.password_decrypted.length || 8)}
+                    {visiblePasswords.has(item.id) ? item.password_decrypted : '••••••••'}
                   </Text>
                 ) : (
-                  <Text style={[styles.password, {color: '#EF4444'}]}>Erreur de déchiffrement</Text>
+                  <Text style={[styles.password, { color: '#EF4444' }]}>Erreur de déchiffrement</Text>
                 )}
-                {item.password_decrypted && (
-                  <TouchableOpacity
-                    onPress={() => togglePasswordVisibility(item.id)}
-                    style={styles.eyeButton}
-                  >
-                    <Ionicons
-                      name={visiblePasswords[item.id] ? 'eye-off' : 'eye'}
-                      size={20}
-                      color="#6B7280"
-                    />
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => togglePasswordVisibility(item.id)}
+                >
+                  <FontAwesome
+                    name={visiblePasswords.has(item.id) ? 'eye-slash' : 'eye'}
+                    size={18}
+                    color="#6B7280"
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           ))}
@@ -128,7 +171,10 @@ export default function Vault() {
       </TouchableOpacity>
       <TouchableOpacity 
         style={[styles.addButton, {backgroundColor:'#EF4444', marginTop: 12}]} 
-        onPress={() => router.replace('/(auth)/login')}
+        onPress={() => {
+          lockApp();
+          router.replace('/(auth)/login');
+        }}
       >
         <Text style={styles.addButtonText}>Verrouiller le coffre</Text>
       </TouchableOpacity>
@@ -169,18 +215,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF', borderRadius: 8, padding: 16, marginBottom: 12,
     shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
   },
-  pseudo: { fontSize: 18, fontWeight: '600', color: '#1F2937' },
-  url: { fontSize: 14, color: '#4B5563', marginBottom: 4 },
-  passwordRow: {
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconButton: {
+    padding: 8,
+  },
+  pseudo: { fontSize: 18, fontWeight: '600', color: '#1F2937', marginBottom: 2 },
+  url: { fontSize: 14, color: '#4B5563' },
+  passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 4,
   },
   password: { fontSize: 16, color: '#6B7280', fontFamily: 'monospace', flex: 1 },
   eyeButton: {
     padding: 4,
-    marginLeft: 8,
   },
   addButton: {
     marginTop: 24, backgroundColor: '#4F46E5', borderRadius: 8,
