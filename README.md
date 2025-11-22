@@ -16,6 +16,32 @@ L'architecture de Lockup repose sur un système de chiffrement en deux étapes :
 
 Cette architecture garantit que même en cas d'accès physique à l'appareil, les mots de passe restent protégés tant que l'application est verrouillée. Le mot de passe maître n'est jamais stocké sur l'appareil.
 
+## Fonctionnement détaillé
+
+### 1. Première connexion - Configuration du mot de passe maître
+
+Lors de la première utilisation, l'application configure le système de sécurité :
+
+![Schéma 1ère connexion](./assets/images/1ere-connexion.png)
+
+### 2. Déverrouillage de l'application
+
+À chaque déverrouillage, l'application vérifie le mot de passe et recrée la clé de chiffrement :
+
+![Schéma déverouillage Lockup](./assets/images/deverouillage.png)
+
+### 3. Ajout d'un mot de passe dans le coffre
+
+Lorsqu'un utilisateur ajoute un nouveau mot de passe :
+
+![Schéma d'ajout d'un mot de passe](./assets/images/ajout-mdp.png)
+
+### 4. Consultation d'un mot de passe
+
+Lorsqu'un utilisateur consulte un mot de passe stocké :
+
+![Schéma de récupération d'un mot de passe](./assets/images/recup-mdp.png)
+
 Voir [CDC.md](./CDC.md) pour le détail des fonctionnalités par version.
 
 ## Technologies
